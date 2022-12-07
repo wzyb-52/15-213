@@ -192,7 +192,7 @@ int allOddBits(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  return ~x + 1;
 }
 //3
 /* 
@@ -205,7 +205,17 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  /* a, b, c are the sign flags for >6, 4&5, <4 bits. */
+  /* int a = !(x>>6); */
+  /* int b = !((x&0x30)^0x30); */
+  /* int c = !(((x&0x0F)+6)>>4); */
+  /* return a & b & c; */
+
+  /* And here comes the version with 2 less operations. */
+  int a = x>>6;
+  int b = (x&0x30)^0x30;
+  int c = ((x&0x0F)+6)>>4;
+  return !(a | b | c);
 }
 /* 
  * conditional - same as x ? y : z 
@@ -215,7 +225,10 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  /* Use !x(0 or 1) to construct mask 0x0 and 0xFFFFFFFF. */
+  int a = !x; // a equals to 0 or 1.
+  a = ~a + 1; // fills the 32 bits using the least significant bit.
+  return (a&z) + (~a&y);
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -225,7 +238,18 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  /* x <= y is true when unsigned x + ~y doesn't cause overflow. */
+  /* sf, of, and zf are sign-flag, overflow-flag, and zero-flag. */
+  int a = x;
+  int b = ~y + 1;
+  int zf = !(x^y);
+  int c = a + b;
+  int sf = (c >> 31) & 1;
+  int d = x >> 31;
+  int e = y >> 31;
+  int of = (d ^ e) & (d ^ sf) & 1;
+  //printf("sf: %x, of: %x, zf: %x\n", sf, of, zf);
+  return (sf^of) | zf; 
 }
 //4
 /* 
