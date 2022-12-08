@@ -280,9 +280,15 @@ int logicalNeg(int x) {
  */
 int howManyBits(int x) {
   /* To find the first or last 1? */
-  int bits;
+  int word;
+  int wordMask;
+  int newW;
   int byte;
   int newB;
+  int hlfB;
+  int newH;
+
+  int bits;
   int flag;
   int mask;
   int addb;
@@ -293,47 +299,49 @@ int howManyBits(int x) {
   mask = x >> 31;
   tran = ~(x+1) + 1;
   x = ((~mask)&x) | (mask&tran);
-  /* 1. the 1st byte. */
-  byte = x & 0xFF;
-  flag = !byte;
-  mask = ~(~flag + 1);
+  /* 1. 32-bit long word to 16-bit word. */
+  /* 1.1. first word. */
+  wordMask = (0xFF<<8) + 0xFF;
+  word = x & wordMask;
   bits = 1;
-  /* 2. the 2nd byte. */
-  newB = (x>>8) & 0xFF;
-  flag = !newB;
+  /* 1.2. second word. */
+  newW = (x>>16) & wordMask;
+  flag = !newW;
   mask = ~(~flag + 1);
-  bits = (9 & mask) | (bits & ~mask);
-  byte = (newB & mask) | (byte & ~mask);
-  /* 3. the 3rd byte. */
-  newB = (x>>16) & 0xFF;
-  flag = !newB;
-  mask = ~(~flag + 1);
-  bits = (17 & mask) | (bits & ~mask);
-  byte = (newB & mask) | (byte & ~mask);
-  /* 4. the 4th byte. */
-  newB = (x>>24) & 0xFF;
-  flag = !newB;
-  mask = ~(~flag + 1);
-  bits = (25 & mask) | (bits & ~mask);
-  byte = (newB & mask) | (byte & ~mask);
-  /* Determine the exact largest 1 bit in the byte. */
+  bits = (17&mask) | (bits&~mask);
+  word = (newW&mask) | (word&~mask);
+  /* 2. 16-bit word to 8-bit byte. */
+  /* 2.1. first byte. */
+  byte = word & 0xFF;
   addb = 0;
-  addb = 1 & byte;
-  mask = (byte << 30) >> 31;
+  /* 2.2. second byte. */
+  newB = (word>>8) & 0xFF;
+  flag = !newB;
+  mask = ~(~flag + 1);
+  addb = 8 & mask;
+  byte = (newB&mask) | (byte&~mask);
+  bits = bits + addb;
+  /* 3. 8-bit byte to 4-bit half-byte. */
+  /* 3.1. first half-byte. */
+  hlfB= byte & 0x0F;
+  addb = 0;
+  /* 3.2. second half-byte. */
+  newH = (byte>>4) & 0x0F;
+  flag = !newH;
+  mask = ~(~flag + 1);
+  addb = 4 & mask;
+  hlfB = (newH&mask) | (hlfB&~mask);
+  bits = bits + addb;
+  /* Determine the exact largest 1 bit in the half-byte. */
+  addb = 0;
+  addb = 1 & hlfB;
+  mask = (hlfB << 30) >> 31;
   addb = (mask & 2) | (~mask & addb);
-  mask = (byte << 29) >> 31;
+  mask = (hlfB << 29) >> 31;
   addb = (mask & 3) | (~mask & addb);
-  mask = (byte << 28) >> 31;
+  mask = (hlfB << 28) >> 31;
   addb = (mask & 4) | (~mask & addb);
-  mask = (byte << 27) >> 31;
-  addb = (mask & 5) | (~mask & addb);
-  mask = (byte << 26) >> 31;
-  addb = (mask & 6) | (~mask & addb);
-  mask = (byte << 25) >> 31;
-  addb = (mask & 7) | (~mask & addb);
-  mask = (byte << 24) >> 31;
-  addb = (mask & 8) | (~mask & addb);
-  //printf("bits: %d, byte: %x, addb: %d\n", bits, byte, addb);
+  //printf("bits: %d, hlfB: %x, addb: %d\n", bits, hlfB, addb);
 
   return bits + addb;
 }
