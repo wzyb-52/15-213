@@ -261,7 +261,10 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+  /* Only 0 and Tmin are the same as their inverse element. */
+  /* Obeserve the result of x^(~x+1), find the similarity. */
+  int y = ~x+1;
+  return ~(((x^y)>>31)|(x>>31))&1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
@@ -276,7 +279,63 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+  /* To find the first or last 1? */
+  int bits;
+  int byte;
+  int newB;
+  int flag;
+  int mask;
+  int addb;
+  int tran;
+  /* Tranverse the negative number to positive which has the same minimum
+   * number of bits required to represent. For example, -16 -> 15.
+   */
+  mask = x >> 31;
+  tran = ~(x+1) + 1;
+  x = ((~mask)&x) | (mask&tran);
+  /* 1. the 1st byte. */
+  byte = x & 0xFF;
+  flag = !byte;
+  mask = ~(~flag + 1);
+  bits = 1;
+  /* 2. the 2nd byte. */
+  newB = (x>>8) & 0xFF;
+  flag = !newB;
+  mask = ~(~flag + 1);
+  bits = (9 & mask) | (bits & ~mask);
+  byte = (newB & mask) | (byte & ~mask);
+  /* 3. the 3rd byte. */
+  newB = (x>>16) & 0xFF;
+  flag = !newB;
+  mask = ~(~flag + 1);
+  bits = (17 & mask) | (bits & ~mask);
+  byte = (newB & mask) | (byte & ~mask);
+  /* 4. the 4th byte. */
+  newB = (x>>24) & 0xFF;
+  flag = !newB;
+  mask = ~(~flag + 1);
+  bits = (25 & mask) | (bits & ~mask);
+  byte = (newB & mask) | (byte & ~mask);
+  /* Determine the exact largest 1 bit in the byte. */
+  addb = 0;
+  addb = 1 & byte;
+  mask = (byte << 30) >> 31;
+  addb = (mask & 2) | (~mask & addb);
+  mask = (byte << 29) >> 31;
+  addb = (mask & 3) | (~mask & addb);
+  mask = (byte << 28) >> 31;
+  addb = (mask & 4) | (~mask & addb);
+  mask = (byte << 27) >> 31;
+  addb = (mask & 5) | (~mask & addb);
+  mask = (byte << 26) >> 31;
+  addb = (mask & 6) | (~mask & addb);
+  mask = (byte << 25) >> 31;
+  addb = (mask & 7) | (~mask & addb);
+  mask = (byte << 24) >> 31;
+  addb = (mask & 8) | (~mask & addb);
+  //printf("bits: %d, byte: %x, addb: %d\n", bits, byte, addb);
+
+  return bits + addb;
 }
 //float
 /* 
