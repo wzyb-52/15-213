@@ -1,7 +1,7 @@
 /* 
  * CS:APP Data Lab 
  * 
- * <Please put your name and userid here>
+ * Carolt
  * 
  * bits.c - Source file with your solutions to the Lab.
  *          This is the file you will hand in to your instructor.
@@ -358,7 +358,24 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+  unsigned sign = uf & 0x80000000;
+  unsigned expn = uf & 0x7f800000;
+  // unsigned frac = uf & 0x007fffff;
+  /* Deal with the floating point number if it isn't NAN. */
+  if (expn == 0) {
+    /* 1. uf ranges from 0 to 1-e. */
+    uf = uf << 1;
+  } else if (expn != 0x7f800000) {
+    /* 2. uf ranges from 1 to 1-e. */
+    uf = uf + 0x00800000;
+  }
+  /* Restore the sign bit. */
+  if (sign == 0x80000000) {
+    uf = uf | 0x80000000;
+  } else {
+    uf = uf & 0x7fffffff;
+  }
+  return uf;
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -373,7 +390,35 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+  unsigned sign = uf & 0x80000000;
+  unsigned expn = uf & 0x7f800000;
+  unsigned frac = uf & 0x007fffff;
+  unsigned E;
+  int retv;
+
+  if (expn == 0x7f800000) {
+    /* 1. Infinity and NAN. */
+    retv = 0x80000000u;
+  } else if (expn < 0x3f800000) {
+    /* 2. uf is in the range of -1 and 1. */
+    retv = 0;
+  } else {
+    /* 3. uf is no less than 1 and no more than -1. */
+    E = (expn >> 23) - 127;
+    retv = frac + 0x00800000;
+    if (E < 23) {
+      retv = retv >> (23 - E);
+    } else if (E < 31) {
+      retv = retv << (E - 23);
+    } else {
+      retv = 0x80000000u;
+    }
+    /* Considering the negative numbers. */
+    if (sign == 0x80000000) {
+      retv = ~retv + 1;
+    }
+  }
+  return retv;
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
@@ -389,5 +434,19 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+  unsigned retv;
+  if (x < -149) {
+    retv = 0;
+  } else if (x <= -126) {
+    /* In fact, to make the classification of situations more clear, better
+     * to use "x < -126" here. And I think it's an interesting coincidence
+     * that both < and <= are right here.
+     */
+    retv = 1 << (149 + x);
+  } else if (x > 127) {
+    retv = 0x7f800000;
+  } else {
+    retv = (x + 127) << 23;
+  }
+  return retv;
 }
