@@ -1,6 +1,6 @@
 # README
 
-This is a repository that documents all my efforts to finish the labs of CSAPP.
+This is a repository that contains the implementation of labs of CSAPP.
 
 ## Lab1 Data
 
@@ -18,4 +18,5 @@ Tips:
 
 + The stack positions will be consistent from one run to the next so you are able to know the address of stack by checking register %rsp via *GDB*.
 + To avoid *segmentation fault*, do not inject executable code out the bound of the return address of caller frame. In other word, try to write code into buffer and unused region to finish Part One.
-+ You would better place strings in some place where they would not be modified. Remember, many instructions like `push`, and `call` will change the contents of stack. 
++ You would better place strings in some places where they would not be modified. Remember, many instructions like `push`, and `call` will change the contents of stack. 
++ Phase 5 may need to construct some instruction beyond `pop`, `mov`, and `nop`. I didn't have any idea about how to resolve this phase by only using these instructions.
