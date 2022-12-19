@@ -17,4 +17,5 @@ Each phases' hex byte code and raw string representation of *exploit* strings ar
 Tips:
 
 + The stack positions will be consistent from one run to the next so you are able to know the address of stack by checking register %rsp via *GDB*.
-+ To avoid *segmentation fault*, do not inject code out the bound of the return address of caller frame. In other word, try to write code into buffer and unused region to finish Part One.
++ To avoid *segmentation fault*, do not inject executable code out the bound of the return address of caller frame. In other word, try to write code into buffer and unused region to finish Part One.
++ You would better place strings in some place where they would not be modified. Remember, many instructions like `push`, and `call` will change the contents of stack. 
