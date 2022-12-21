@@ -26,7 +26,8 @@
 queue_t *queue_new(void) {
     queue_t *q = malloc(sizeof(queue_t));
     /* What if malloc returned NULL? */
-    if (!q) return NULL;
+    if (!q)
+        return NULL;
     q->head = NULL;
     q->tail = NULL;
     q->size = 0;
@@ -40,8 +41,9 @@ queue_t *queue_new(void) {
 void queue_free(queue_t *q) {
     /* How about freeing the list elements and the strings? */
     /* Free queue structure */
-    if (!q || !q->head) return;
-    for (list_ele_t* ptr = q->head; ptr != NULL; ptr = q->head) {
+    if (!q)
+        return;
+    for (list_ele_t *ptr = q->head; ptr != NULL; ptr = q->head) {
         q->head = ptr->next;
         free(ptr->value);
         free(ptr);
@@ -64,12 +66,17 @@ void queue_free(queue_t *q) {
 bool queue_insert_head(queue_t *q, const char *s) {
     list_ele_t *newh;
     /* What should you do if the q is NULL? */
-    if (!q) q = queue_new();
+    if (!q)
+        return false;
     newh = malloc(sizeof(list_ele_t));
     /* Don't forget to allocate space for the string and copy it */
-    char *newvalue = (char*)malloc(strlen(s) + 1);
+    char *newvalue = (char *)malloc(strlen(s) + 1);
     /* What if either call to malloc returns NULL? */
-    if (!newh || !newvalue) return false;
+    if (!newh || !newvalue) {
+        free(newvalue);
+        free(newh);
+        return false;
+    }
     strcpy(newvalue, s);
     newh->value = newvalue;
     newh->next = q->head;
@@ -77,7 +84,8 @@ bool queue_insert_head(queue_t *q, const char *s) {
     /* Update the size. */
     q->size += 1;
     /* Special case: q originly is null. */
-    if (!q->head->next) q->tail = q->head;
+    if (q->size == 1)
+        q->tail = q->head;
     return true;
 }
 
@@ -99,18 +107,25 @@ bool queue_insert_tail(queue_t *q, const char *s) {
     if (!q) {
         return queue_insert_head(q, s);
     }
+    /* Special case: q originly has no elements. */
+    if (q->size == 0)
+        return queue_insert_head(q, s);
     list_ele_t *newh = malloc(sizeof(list_ele_t));
-    char   *newvalue = (char*)malloc(strlen(s) + 1);
+    char *newvalue = (char *)malloc(strlen(s) + 1);
     /* What if either call to malloc returns NULL? */
-    if (!newh || !newvalue) return false;
+    if (!newh || !newvalue) {
+        free(newvalue);
+        free(newh);
+        return false;
+    }
     strcpy(newvalue, s);
     newh->next = NULL;
     newh->value = newvalue;
-    q->tail->next = newh; 
+    q->tail->next = newh;
     q->tail = newh;
     /* Update the size. */
     q->size += 1;
-    return false;
+    return true;
 }
 
 /**
@@ -132,7 +147,8 @@ bool queue_insert_tail(queue_t *q, const char *s) {
  */
 bool queue_remove_head(queue_t *q, char *buf, size_t bufsize) {
     /* You need to fix up this code. */
-    if (!q) return false;
+    if (!q || q->size == 0 || !buf || bufsize == 0)
+        return false;
     /* Then the removal will succeed. */
     list_ele_t *ptr = q->head;
     q->head = q->head->next;
@@ -147,7 +163,8 @@ bool queue_remove_head(queue_t *q, char *buf, size_t bufsize) {
     free(ptr->value);
     free(ptr);
     /* Special case: the origin queue has only one element. */
-    if (!q->head) q->tail = NULL;
+    if (q->size == 0)
+        q->tail = NULL;
     return true;
 }
 
@@ -164,7 +181,7 @@ bool queue_remove_head(queue_t *q, char *buf, size_t bufsize) {
 size_t queue_size(queue_t *q) {
     /* You need to write the code for this function */
     /* Remember: It should operate in O(1) time */
-    return q->size;
+    return !q ? 0 : q->size;
 }
 
 /**
@@ -178,14 +195,15 @@ size_t queue_size(queue_t *q) {
  */
 void queue_reverse(queue_t *q) {
     /* You need to write the code for this function */
-    if (!q || q->size < 2) return;
+    if (!q || q->size < 2)
+        return;
     list_ele_t *ptr, *head = q->head, *tail = q->tail;
     size_t cnt = q->size;
     for (size_t i = 1; i < cnt; ++i) {
         ptr = head->next;
         head->next = tail->next;
         tail->next = head;
-        head = ptr; 
+        head = ptr;
     }
     ptr = q->head;
     q->head = q->tail;

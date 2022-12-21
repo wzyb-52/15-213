@@ -2,6 +2,10 @@
 
 This is a repository that contains the implementation of labs of CSAPP.
 
+## Lab0 C Programming
+
+Due to the smattering of `malloc()` and other concepts about memory management of C, I failed several times at the beginning. Command `man` will be very helpful when having trouble with the usages of some C functions. Remember, every `malloc()` should correspond to a `free()`. 
+
 ## Lab1 Data
 
 `isTmax(x)`, `conditional`, `isLessOrEqual`, and `howManyBits` puzzles are a little tricky. See the comments which explain the ideas of solution in detail.
